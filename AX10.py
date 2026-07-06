@@ -1,55 +1,3 @@
-"""
-TFT v9 — Quant-Grade Multi-Horizon Stock Return Forecaster
-===========================================================
-Targets: 1 / 3 / 5 / 7 / 14 / 28-day log-returns
-Design philosophy: Jane-Street / Citadel intern level — Transformer × LSTM × MoE,
-strict causal integrity, no lookahead, no leakage, memory-safe chunked I/O.
-
-Key improvements over v8
-------------------------
-1. Memory safety
-   • Chunked Stage-1 writes + immediate GC; mmap throughout Stage-2
-   • Per-ticker storage cleanup after normalisation finishes
-   • Hard RAM/storage guards before every write
-   • DataLoader pin_memory only when VRAM permits; num_workers auto-detected
-
-2. Leakage & lookahead elimination
-   • Target labels built with strict >EI offset; dec_kn filled with zeros
-     (only calendar features for future horizon, no price data)
-   • Global normalisation stats computed ONLY on train-split rows
-   • RevIN statistics computed on encoder window only (no decoder bleed)
-   • Purge gap between val/test identical to max(horizon)
-
-3. Storage cleanup
-   • v4 files deleted per-ticker once v5 is written (chunked delete)
-   • Intermediate arrays freed immediately with del + gc.collect()
-
-4. Feature engineering additions (no leakage by construction)
-   • Adaptive lookback entropy (multi-scale)
-   • Volatility-adjusted carry proxy
-   • Cross-sectional rank features (z-score of 1-d, 5-d, 20-d returns)
-   • Realised covariance with SPY at 3 windows
-   • Refined Amihud / Kyle with Newey-West correction
-
-5. Model upgrades
-   • Rotary-Embedding self-attention (RoPE, causal mask on decoder)
-   • Gated MoE with load-balancing (8 experts, top-3)
-   • Asymmetric Huber + quantile + directional + IC + NDCG composite loss
-   • Temporal-Contrastive regulariser (pulls same-symbol embeddings together)
-   • Label smoothing only on sign, not on magnitude targets
-   • Temperature-scaled quantiles with monotone-sort post-processing
-
-6. Training stability
-   • SAM + AdamW with gradient accumulation (6 steps)
-   • Cosine annealing with warm-up + SWA
-   • AMP with dynamic loss scaling; grad-checkpoint on VSN + LSTM
-   • EMA of validation metrics for patience decisions
-
-7. Evaluation / visibility
-   • 20 Plotly charts including: rolling IC, decile PnL, quantile calibration,
-     regime breakdown, feature importance, uncertainty (TTA variance)
-   • JSON test_metrics; CSV rolling_ic_table; per-horizon attribution table
-"""
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Imports
@@ -75,7 +23,7 @@ import plotly.express as px
 
 warnings.filterwarnings("ignore")
 
-# Set Plotly renderer — "notebook_connected" works in Kaggle/Colab/Jupyter.
+# Set Plotly renderer — "notebook_connected" works in Kaggle/Colab
 # Falls back silently to the default if not in a notebook.
 try:
     import plotly.io as _pio_init
