@@ -1,0 +1,212 @@
+INSTRUCTIONS — AURANT ACEX TRADING SYSTEM
+1. OVERVIEW
+
+AURANT ACEX is a multimodal quantitative trading system combining Temporal Fusion Transformers (TFT), time-series Mixture-of-Experts (MoE), and multimodal feature embeddings. The system is designed for financial time-series forecasting, regime adaptation, and backtesting using structured market data stored in compressed Parquet format.
+
+Core capabilities:
+
+Multi-horizon price prediction
+Regime-aware trading via MoE routing
+Multimodal feature fusion (price, indicators, macro signals)
+Scalable dataset pipeline using Parquet
+Backtesting with risk-adjusted performance metrics
+2. REQUIREMENTS
+
+Python version:
+
+Python 3.9+
+
+Install dependencies:
+
+pip install -r requirements.txt
+
+Typical dependencies:
+
+torch
+numpy
+pandas
+scikit-learn
+pyarrow
+matplotlib
+3. DATASET DOWNLOAD (KAGGLE)
+
+Dataset link:
+https://www.kaggle.com/datasets/adityaravojha/aurant-aseries/data
+
+Step 1: Install Kaggle CLI
+
+pip install kaggle
+
+Step 2: Create API Key
+Go to Kaggle account settings
+Navigate to API section
+Click “Create New API Token”
+Download kaggle.json
+Step 3: Place API Key
+
+Mac/Linux:
+
+mkdir -p ~/.kaggle
+mv kaggle.json ~/.kaggle/
+chmod 600 ~/.kaggle/kaggle.json
+
+Windows:
+
+Place file in:
+C:\Users<USERNAME>.kaggle\kaggle.json
+
+Step 4: Download dataset
+
+kaggle datasets download -d adityaravojha/aurant-aseries --unzip
+
+4. DATA STRUCTURE
+
+After download, expected structure:
+
+data/
+raw/
+ohlcv.csv
+indicators.csv
+macro.csv
+processed/
+
+5. PREPROCESSING
+
+Run preprocessing pipeline:
+
+python training/preprocess.py
+
+This step:
+
+Cleans missing values
+Normalizes features
+Generates rolling windows
+Builds training sequences
+Converts datasets to Parquet format
+
+Output:
+data/processed/train.parquet
+data/processed/test.parquet
+
+6. MODEL TRAINING
+
+Run training:
+
+python training/train.py --config configs/base.yaml
+
+Model architecture:
+Temporal Fusion Transformer (TFT)
+Long and short-term sequence modeling
+Attention-based variable selection
+Time-Series Mixture-of-Experts (MoE)
+Multiple specialized expert networks:
+Momentum expert
+Mean reversion expert
+Volatility expert
+Gating network routes inputs dynamically
+Multimodal Embedding Layer
+OHLCV embeddings
+Technical indicators
+Macro features
+Concatenated projection layer
+7. BACKTESTING
+
+Run backtest engine:
+
+python backtesting/engine.py
+
+Outputs:
+
+Equity curve
+Sharpe ratio
+Max drawdown
+Win rate
+Trade logs
+
+Saved to:
+results/backtest_report.json
+results/equity_curve.png
+
+8. INFERENCE
+
+Run prediction:
+
+python inference/predict.py
+
+Outputs:
+
+Predicted return
+Buy/Hold/Sell signal
+Confidence score
+9. STREAMING MODE (OPTIONAL)
+
+Simulate live trading:
+
+python inference/stream.py
+
+Features:
+
+Rolling window updates
+Real-time prediction loop
+Latency-optimized inference
+10. ABLATION STUDIES
+
+Run ablation tests:
+
+python training/ablation.py
+
+Compares:
+
+Full model (TFT + MoE + multimodal)
+Without MoE
+Without TFT
+Without multimodal embeddings
+
+Outputs:
+
+Performance comparison table
+Metric breakdown per variant
+11. KEY DESIGN DECISIONS
+
+Parquet format:
+
+Faster I/O
+Reduced storage size
+Efficient batch training
+
+TFT:
+
+Handles structured time series
+Provides interpretability
+Captures temporal dependencies
+
+MoE:
+
+Enables regime specialization
+Reduces model collapse
+Improves robustness in non-stationary markets
+
+Multimodal embeddings:
+
+Allows fusion of heterogeneous signals
+Improves generalization across market conditions
+12. REPRODUCIBILITY
+
+Run with fixed seed:
+
+python training/train.py --config configs/base.yaml --seed 42
+
+Ensure:
+
+Same dataset version
+Same preprocessing pipeline
+Same config file
+13. OUTPUTS
+
+All outputs are saved in:
+
+results/
+models/
+backtests/
+logs/
+figures/
